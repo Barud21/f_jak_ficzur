@@ -21,9 +21,9 @@ app.patients = []
 # Zadanie 1
 ##############################################################
 
-@app.get('/')
-def hello_world():
-    return {"message": "Hello World during the coronavirus pandemic!"}
+# @app.get('/')
+# def hello_world():
+#     return {"message": "Hello World during the coronavirus pandemic!"}
 
 
 ##############################################################
@@ -72,12 +72,12 @@ def patient_data(rq: patient_data_rq):
 # Zadanie 4
 ##############################################################
 
-@app.get('/patient/{pk}')
-def show_patient_data(pk: int):
-    if pk < len(app.patients):
-        return app.patients[pk]
-    else:
-        raise HTTPException(status_code=204, detail="Index not found")
+# @app.get('/patient/{pk}')
+# def show_patient_data(pk: int):
+#     if pk < len(app.patients):
+#         return app.patients[pk]
+#     else:
+#         raise HTTPException(status_code=204, detail="Index not found")
 
 
 ##############################################################
