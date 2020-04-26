@@ -8,7 +8,7 @@ from pydantic import BaseModel
 app = FastAPI()
 app.secret_key = "secret_KeY so S8cr3T"
 security = HTTPBasic()
-app.session_tokens = []
+app.session_tokens = {}
 templates = Jinja2Templates(directory="templates")
 
 app.counter = 0
@@ -53,7 +53,7 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
             headers={"WWW-Authenticate": "Basic"}
         )
     session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}", encoding='utf8')).hexdigest()
-    app.session_tokens.append(session_token)
+    app.session_tokens[session_token] = credentials.username
     response.set_cookie(key="session_token", value=session_token)
     response.headers["Location"] = "/welcome"
     response.status_code = status.HTTP_302_FOUND
@@ -65,8 +65,9 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
 @app.post('/logout')
 def logout(*, response: Response, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
+        session_token = None
         raise HTTPException(status_code=401, detail="Unauthorized")
-    app.session_tokens.remove(session_token)
+    app.session_tokens.pop(session_token)
     response.headers["Location"] = "/"
 
 ##############################################################
@@ -76,6 +77,7 @@ def logout(*, response: Response, session_token: str = Cookie(None)):
 @app.post("/patient")
 def add_patient(*, response: Response, patient: patient_data_rq, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
+        session_token = None
         raise HTTPException(status_code=401, detail="Unauthorized")
     if app.counter > len(app.patients):
         app.patients.append(patient)
@@ -87,20 +89,23 @@ def add_patient(*, response: Response, patient: patient_data_rq, session_token: 
 @app.get("/patient")
 def show_patients(response: Response, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
+        session_token = None
         raise HTTPException(status_code=401, detail="Unauthorized")
     return app.patients
 
-@app.get(f"/patients/{id}")
+@app.get("/patients/{id}")
 def show_patient_data(response: Response, id: int, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
+        session_token = None
         raise HTTPException(status_code=401, detail="Unauthorized")
     response.set_cookie(key="session_token", value=session_token)
     if id < len(app.patients):
         return app.patients[id]
 
-@app.delete(f"patient/{id}")
+@app.delete("patient/{id}")
 def delete_patient(response: Response, id: int, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
+        session_token = None
         raise HTTPException(status_code=401, detail="Unauthorized")
     app.patients.remove(id)
     response.status_code = status.HTTP_204_NO_CONTENT
