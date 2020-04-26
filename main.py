@@ -30,21 +30,21 @@ app.patients = []
 # Zadanie 2
 ##############################################################
 
-@app.get('/method')
-def return_get():
-    return {"method": "GET"}
-
-@app.post('/method')
-def return_post():
-    return {"method": "POST"}
-
-@app.put('/method')
-def return_put():
-    return {"method": "PUT"}
-
-@app.delete('/method')
-def return_delete():
-    return {"method": "DELETE"}
+# @app.get('/method')
+# def return_get():
+#     return {"method": "GET"}
+#
+# @app.post('/method')
+# def return_post():
+#     return {"method": "POST"}
+#
+# @app.put('/method')
+# def return_put():
+#     return {"method": "PUT"}
+#
+# @app.delete('/method')
+# def return_delete():
+#     return {"method": "DELETE"}
 
 
 ##############################################################
@@ -61,11 +61,11 @@ class patient_data_resp(BaseModel):
     patient: patient_data_rq
 
 
-@app.post('/patient')
-def patient_data(rq: patient_data_rq):
-    app.patients.append(rq)
-    app.counter += 1
-    return patient_data_resp(id=app.counter, patient=rq)
+# @app.post('/patient')
+# def patient_data(rq: patient_data_rq):
+#     app.patients.append(rq)
+#     app.counter += 1
+#     return patient_data_resp(id=app.counter, patient=rq)
 
 
 ##############################################################
@@ -111,15 +111,14 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
     session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}", encoding='utf8')).hexdigest()
     app.session_tokens.append(session_token)
     response.set_cookie(key="session_token", value=session_token)
-    response = RedirectResponse("/welcome")
+    RedirectResponse("/welcome")
     response.status_code = status.HTTP_302_FOUND
-    return response
 
-@app.get("/data")
-def create_cookie(*, response: Response, session_token: str = Cookie(None)):
-    if session_token not in app.session_tokens:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    response.set_cookie(key="session_token", value=session_token)
+# @app.get("/data")
+# def create_cookie(*, response: Response, session_token: str = Cookie(None)):
+#     if session_token not in app.session_tokens:
+#         raise HTTPException(status_code=401, detail="Unauthorized")
+#     response.set_cookie(key="session_token", value=session_token)
 ##############################################################
 # Zadanie 3
 ##############################################################
@@ -129,8 +128,7 @@ def logout(*, response: Response, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
         raise HTTPException(status_code=401, detail="Unauthorized")
     app.session_tokens.remove(session_token)
-    response = RedirectResponse("/")
-    return response
+    RedirectResponse("/")
 
 ##############################################################
 # Zadanie 3
