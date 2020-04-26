@@ -43,12 +43,9 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
     response.headers["Location"] = "/welcome"
     response.status_code = status.HTTP_302_FOUND
 
-@app.get("/data")
-def create_cookie(*, response: Response, session_token: str = Cookie(None)):
-    if session_token not in session_tokens:
-        raise HTTPException(status_code=403, detail="Unauthorised")
-    response.set_cookie(key="session_token", value=session_token)
-
+@app.get("/users/me")
+def read_current_user(username: str = Depends(get_current_username)):
+    return {"username": username}
 ##############################################################
 # Zadanie 3
 ##############################################################
