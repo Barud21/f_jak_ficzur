@@ -10,7 +10,7 @@ from pydantic import BaseModel
 app = FastAPI()
 app.secret_key = "secret_KeY so S8cr3T"
 security = HTTPBasic()
-session_tokens = []
+app.session_tokens = []
 templates = Jinja2Templates(directory="templates")
 
 ##############################################################
@@ -19,7 +19,7 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get('/welcome')
 def welcome(request: Request, session_token: str = Cookie(None)):
-    if session_token not in session_tokens:
+    if session_token not in app.session_tokens:
         raise HTTPException(status_code=401, detail="Unauthorized")
     return templates.TemplateResponse("item.html", {"request": request, "user": "trudnY"})
 
@@ -42,11 +42,12 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
             headers={"WWW-Authenticate": "Basic"}
         )
     session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}")).hexdigest
-    session_tokens.append(session_token)
+    app.session_tokens.append(session_token)
     response.set_cookie(key="session_token", value=session_token)
     # RedirectResponse(url="/welcome")
-    response.headers["Location"] = "/welcome"
+    response = RedirectResponse("/welcome")
     response.status_code = status.HTTP_302_FOUND
+    return response
 
 @app.get("/users/me")
 def read_current_user(username: str = Depends(get_current_username)):
@@ -57,7 +58,8 @@ def read_current_user(username: str = Depends(get_current_username)):
 
 @app.post('/logout')
 def logout(*, response: Response, session_token: str = Cookie(None)):
-    if session_token not in session_tokens:
+    if session_token not in app.session_tokens:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    session_tokens.remove(session_token)
-    response.headers["Location"] = "/"
+    app.session_tokens.remove(session_token)
+    response = RedirectResponse("/")
+    return response
