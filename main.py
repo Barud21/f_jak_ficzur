@@ -88,7 +88,6 @@ def patient_data(rq: patient_data_rq):
 def welcome(request: Request, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
         raise HTTPException(status_code=401, detail="Unauthorized")
-    #return {"message": "Welcome"}
     return templates.TemplateResponse("item.html", {"request": request, "user": "trudnY"})
 
 @app.get('/')
@@ -147,6 +146,7 @@ def add_patient(*, response: Response, patient: patient_data_rq, session_token: 
     response.set_cookie(key="session_token", value=session_token)
     response = RedirectResponse(f"/patient/{app.counter-1}")
     response.status_code = status.HTTP_302_FOUND
+    return response
 
 @app.get("/patient")
 def show_patients(response: Response, session_token: str = Cookie(None)):
@@ -154,7 +154,7 @@ def show_patients(response: Response, session_token: str = Cookie(None)):
         raise HTTPException(status_code=401, detail="Unauthorized")
     return app.patients
 
-@app.get("/patients/{id}")
+@app.get(f"/patients/{id}")
 def show_patient_data(response: Response, id: int, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -162,7 +162,7 @@ def show_patient_data(response: Response, id: int, session_token: str = Cookie(N
     if id < len(app.patients):
         return app.patients[id]
 
-@app.delete("patient/{id}")
+@app.delete(f"patient/{id}")
 def delete_patient(response: Response, id: int, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
         raise HTTPException(status_code=401, detail="Unauthorized")
