@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, Response, Depends, status, Cookie
+from fastapi import FastAPI, HTTPException, Response, Depends, status, Cookie, Request
+from fastapi.templating import Jinja2Templates
 import secrets
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from hashlib import sha256
@@ -10,14 +11,17 @@ app = FastAPI()
 app.secret_key = "secret_KeY so S8cr3T"
 security = HTTPBasic()
 session_tokens = []
+templates = Jinja2Templates(directory="templates")
 
 ##############################################################
 # Zadanie 1
 ##############################################################
 
 @app.get('/welcome')
-def welcome():
-    return {"message": "Welcome"}
+def welcome(request: Request, session_token: str = Cookie(None)):
+    if session_token not in session_tokens:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return templates.TemplateResponse("item.html", {"request": request, "user": "trudnY"})
 
 @app.get('/')
 def hello():
@@ -37,12 +41,12 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
             detail="Incorrect login or password",
             headers={"WWW-Authenticate": "Basic"}
         )
-    session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}")).hexdigest()
+    session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}")).hexdigest
+    session_tokens.append(session_token)
     response.set_cookie(key="session_token", value=session_token)
     # RedirectResponse(url="/welcome")
-    response = RedirectResponse(url="/welcome")
+    response.headers["Location"] = "/welcome"
     response.status_code = status.HTTP_302_FOUND
-    return response
 
 @app.get("/users/me")
 def read_current_user(username: str = Depends(get_current_username)):
@@ -54,7 +58,6 @@ def read_current_user(username: str = Depends(get_current_username)):
 @app.post('/logout')
 def logout(*, response: Response, session_token: str = Cookie(None)):
     if session_token not in session_tokens:
-        raise HTTPException(status_code=401, detail="Unauthorised")
+        raise HTTPException(status_code=401, detail="Unauthorized")
     session_tokens.remove(session_token)
-    response = RedirectResponse(url="/welcome")
-    return response
+    response.headers["Location"] = "/"
