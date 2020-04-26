@@ -1,9 +1,9 @@
 from fastapi import FastAPI, HTTPException, Response, Depends, status, Cookie, Request
 from fastapi.templating import Jinja2Templates
-import secrets
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from hashlib import sha256
 from pydantic import BaseModel
+import secrets
 
 app = FastAPI()
 app.secret_key = "secret_KeY so S8cr3T"
@@ -25,7 +25,7 @@ class patient_data_resp(BaseModel):
 
 
 ##############################################################
-# Zadanie 1
+# Zadanie 1 i 4
 ##############################################################
 
 @app.get('/welcome')
@@ -65,19 +65,17 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
 @app.post('/logout')
 def logout(*, response: Response, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
-        session_token = None
         raise HTTPException(status_code=401, detail="Unauthorized")
     app.session_tokens.pop(session_token)
     response.headers["Location"] = "/"
 
 ##############################################################
-# Zadanie 3
+# Zadanie 5
 ##############################################################
 
 @app.post("/patient")
 def add_patient(*, response: Response, patient: patient_data_rq, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
-        session_token = None
         raise HTTPException(status_code=401, detail="Unauthorized")
     if app.counter > len(app.patients):
         app.patients.append(patient)
@@ -89,14 +87,12 @@ def add_patient(*, response: Response, patient: patient_data_rq, session_token: 
 @app.get("/patient")
 def show_patients(response: Response, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
-        session_token = None
         raise HTTPException(status_code=401, detail="Unauthorized")
     return app.patients
 
 @app.get("/patients/{id}")
 def show_patient_data(response: Response, id: int, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
-        session_token = None
         raise HTTPException(status_code=401, detail="Unauthorized")
     response.set_cookie(key="session_token", value=session_token)
     if id < len(app.patients):
@@ -105,7 +101,6 @@ def show_patient_data(response: Response, id: int, session_token: str = Cookie(N
 @app.delete("patient/{id}")
 def delete_patient(response: Response, id: int, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
-        session_token = None
         raise HTTPException(status_code=401, detail="Unauthorized")
     app.patients.remove(id)
     response.status_code = status.HTTP_204_NO_CONTENT
