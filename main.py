@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Response, Depends, status
+from fastapi import FastAPI, HTTPException, Response, Depends, status, Cookie
 import secrets
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from hashlib import sha256
@@ -43,6 +43,19 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
     response.headers["Location"] = "/welcome"
     response.status_code = status.HTTP_302_FOUND
 
-@app.get("/users/pacjent")
-def read_current_user(username: str = Depends(get_current_username)):
-    return {"username": username}
+@app.get("/data")
+def create_cookie(*, response: Response, session_token: str = Cookie(None)):
+    if session_token not in session_tokens:
+        raise HTTPException(status_code=403, detail="Unauthorised")
+    response.set_cookie(key="session_token", value=session_token)
+
+##############################################################
+# Zadanie 3
+##############################################################
+
+@app.post('/logout')
+def logout(*, response: Response, session_token: str = Cookie(None)):
+    if session_token not in session_tokens:
+        raise HTTPException(status_code=401, detail="Unauthorised")
+    session_tokens.remove(session_token)
+    return RedirectResponse("/")
