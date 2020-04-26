@@ -111,7 +111,7 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
     session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}", encoding='utf8')).hexdigest()
     app.session_tokens.append(session_token)
     response.set_cookie(key="session_token", value=session_token)
-    RedirectResponse("/welcome")
+    response.headers["Location"] = "/welcome"
     response.status_code = status.HTTP_302_FOUND
 
 # @app.get("/data")
@@ -128,7 +128,7 @@ def logout(*, response: Response, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
         raise HTTPException(status_code=401, detail="Unauthorized")
     app.session_tokens.remove(session_token)
-    RedirectResponse("/")
+    response.headers["Location"] = ("/")
 
 ##############################################################
 # Zadanie 3
