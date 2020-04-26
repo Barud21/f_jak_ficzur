@@ -3,8 +3,6 @@ from fastapi.templating import Jinja2Templates
 import secrets
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from hashlib import sha256
-from fastapi.responses import JSONResponse
-from starlette.responses import RedirectResponse
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -13,43 +11,8 @@ security = HTTPBasic()
 app.session_tokens = []
 templates = Jinja2Templates(directory="templates")
 
-
 app.counter = 0
 app.patients = []
-
-##############################################################
-# Zadanie 1
-##############################################################
-
-# @app.get('/')
-# def hello_world():
-#     return {"message": "Hello World during the coronavirus pandemic!"}
-
-
-##############################################################
-# Zadanie 2
-##############################################################
-
-# @app.get('/method')
-# def return_get():
-#     return {"method": "GET"}
-#
-# @app.post('/method')
-# def return_post():
-#     return {"method": "POST"}
-#
-# @app.put('/method')
-# def return_put():
-#     return {"method": "PUT"}
-#
-# @app.delete('/method')
-# def return_delete():
-#     return {"method": "DELETE"}
-
-
-##############################################################
-# Zadanie 3
-##############################################################
 
 class patient_data_rq(BaseModel):
     name: str
@@ -59,25 +22,6 @@ class patient_data_rq(BaseModel):
 class patient_data_resp(BaseModel):
     id: int
     patient: patient_data_rq
-
-
-# @app.post('/patient')
-# def patient_data(rq: patient_data_rq):
-#     app.patients.append(rq)
-#     app.counter += 1
-#     return patient_data_resp(id=app.counter, patient=rq)
-
-
-##############################################################
-# Zadanie 4
-##############################################################
-
-# @app.get('/patient/{pk}')
-# def show_patient_data(pk: int):
-#     if pk < len(app.patients):
-#         return app.patients[pk]
-#     else:
-#         raise HTTPException(status_code=204, detail="Index not found")
 
 
 ##############################################################
@@ -114,11 +58,6 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
     response.headers["Location"] = "/welcome"
     response.status_code = status.HTTP_302_FOUND
 
-# @app.get("/data")
-# def create_cookie(*, response: Response, session_token: str = Cookie(None)):
-#     if session_token not in app.session_tokens:
-#         raise HTTPException(status_code=401, detail="Unauthorized")
-#     response.set_cookie(key="session_token", value=session_token)
 ##############################################################
 # Zadanie 3
 ##############################################################
@@ -128,7 +67,7 @@ def logout(*, response: Response, session_token: str = Cookie(None)):
     if session_token not in app.session_tokens:
         raise HTTPException(status_code=401, detail="Unauthorized")
     app.session_tokens.remove(session_token)
-    response.headers["Location"] = ("/")
+    response.headers["Location"] = "/"
 
 ##############################################################
 # Zadanie 3
@@ -142,9 +81,8 @@ def add_patient(*, response: Response, patient: patient_data_rq, session_token: 
         app.patients.append(patient)
         app.counter =+ 1
     response.set_cookie(key="session_token", value=session_token)
-    response = RedirectResponse(f"/patient/{app.counter-1}")
+    response.headers["Location"] = f"/patient/{app.counter-1}"
     response.status_code = status.HTTP_302_FOUND
-    return response
 
 @app.get("/patient")
 def show_patients(response: Response, session_token: str = Cookie(None)):
