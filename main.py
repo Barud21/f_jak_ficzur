@@ -41,7 +41,7 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
             detail="Incorrect login or password",
             headers={"WWW-Authenticate": "Basic"}
         )
-    session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}")).hexdigest
+    session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}")).hexdigest()
     app.session_tokens.append(session_token)
     response.set_cookie(key="session_token", value=session_token)
     # RedirectResponse(url="/welcome")
