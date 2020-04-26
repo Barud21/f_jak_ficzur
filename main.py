@@ -39,8 +39,9 @@ def get_current_username(response: Response, credentials: HTTPBasicCredentials =
         )
     session_token = sha256(bytes(f"{credentials.username}{credentials.password}{app.secret_key}")).hexdigest
     response.set_cookie(key="session_token", value=session_token)
-    RedirectResponse(url="/welcome")
-    return response
+    # RedirectResponse(url="/welcome")
+    response.headers["Location"] = "/welcome"
+    response.status_code = status.HTTP_302_FOUND
 
 @app.get("/users/pacjent")
 def read_current_user(username: str = Depends(get_current_username)):
